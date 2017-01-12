@@ -6,7 +6,9 @@
             "email": "antron@cocobat.com"
         }
     ],
-    "require": {},
+    "require": {
+        "erusev/parsedown": "~1.0"
+    },
     "autoload": {
         "classmap": [
             "src"

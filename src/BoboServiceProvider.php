@@ -4,7 +4,7 @@ namespace Antron\Bobo;
 
 use Illuminate\Support\ServiceProvider;
 
-class AranaServiceProvider extends ServiceProvider
+class BoboServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap the application services.

@@ -10,9 +10,36 @@ namespace Antron\Bobo;
 class Bobo
 {
 
+    /**
+     * エラーログの存在確認.
+     *
+     * @return boolean
+     */
+    public static function checkLog()
+    {
+        if (file_exists(storage_path('logs/laravel.log'))) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private static function accumeLog($path)
+    {
+        if (file_exists($path)) {
+            $logs = file_get_contents($path);
+
+            $newpath = str_replace('.log', '_all.log', $path);
+
+            file_put_contents($newpath, $logs, FILE_APPEND | LOCK_EX);
+
+            unlink($path);
+        }
+    }
+
     public static function flushLog()
     {
-        $filename = storage_path('log/laravel.log');
+        $filename = storage_path('logs/laravel.log');
 
         if (file_exists($filename)) {
             print "<pre>";
@@ -21,9 +48,7 @@ class Bobo
 
             print "</pre>";
 
-            unlink($filename);
-
-            exit;
+            self::accumeLog(storage_path('logs/laravel.log'));
         }
     }
 
@@ -88,7 +113,7 @@ class Bobo
 
         $headline = [];
 
-        while (count($headline) < 3 || count($outputs)) {
+        while (count($headline) < 3 && count($outputs)) {
             $headline[] = array_shift($outputs);
         }
 
@@ -99,9 +124,9 @@ class Bobo
     {
 
         $md_info = self::getMdfile(resource_path('views/bobo/md_info.txt'));
-        
+
         $md_history = self::getMdfile(resource_path('views/bobo/md_history.txt'));
-        
+
         $compares = [];
 
         while (count($md_info) && count($md_history)) {

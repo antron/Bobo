@@ -11,7 +11,7 @@ class Bobo
 {
 
     /**
-     * エラーログの存在確認.
+     * check Log.
      *
      * @return boolean
      */
@@ -24,19 +24,9 @@ class Bobo
         }
     }
 
-    private static function accumeLog($path)
-    {
-        if (file_exists($path)) {
-            $logs = file_get_contents($path);
-
-            $newpath = str_replace('.log', '_all.log', $path);
-
-            file_put_contents($newpath, $logs, FILE_APPEND | LOCK_EX);
-
-            unlink($path);
-        }
-    }
-
+    /**
+     * Flush Log.
+     */
     public static function flushLog()
     {
         $filename = storage_path('logs/laravel.log');
@@ -53,9 +43,9 @@ class Bobo
     }
 
     /**
-     * ヘッドラインの出力.
+     * HeadLine.
      *
-     * @return string ヘッドラインのHTML
+     * @return string html
      */
     public static function headline()
     {
@@ -64,40 +54,16 @@ class Bobo
         return $Parsedown->text(file_get_contents(resource_path('views/bobo/headline.txt')));
     }
 
-    public static function history()
-    {
-        $Parsedown = new \Parsedown();
-
-        return $Parsedown->text(file_get_contents(resource_path('views/bobo/md_history.txt')));
-    }
-
-    public static function info()
-    {
-        $Parsedown = new \Parsedown();
-
-        return $Parsedown->text(file_get_contents(resource_path('views/bobo/md_info.txt')));
-    }
-
+    /**
+     * news.
+     * 
+     * @return string html
+     */
     public static function news()
     {
         $Parsedown = new \Parsedown();
-
+        
         return $Parsedown->text(file_get_contents(resource_path('views/bobo/news.txt')));
-    }
-
-    public static function version()
-    {
-        return file_get_contents(resource_path('views/bobo/version.txt'));
-    }
-
-    private static function makeVersion()
-    {
-
-        $history = file(resource_path('views/bobo/md_history.txt'));
-
-        $version = preg_replace(["/.*Version/", "/\n/", "/\r/"], "", $history[0]);
-
-        file_put_contents(resource_path('views/bobo/version.txt'), trim($version));
     }
 
     public static function update()
@@ -118,6 +84,44 @@ class Bobo
         }
 
         file_put_contents(resource_path('views/bobo/headline.txt'), implode("\n", $headline));
+    }
+
+    /**
+     * Version.
+     * 
+     * @return type
+     */
+    public static function version()
+    {
+        return file_get_contents(resource_path('views/bobo/version.txt'));
+    }
+
+    /**
+     * Accume.
+     * 
+     * @param string $path
+     */
+    private static function accumeLog($path)
+    {
+        if (file_exists($path)) {
+            $logs = file_get_contents($path);
+
+            $newpath = str_replace('.log', '_all.log', $path);
+
+            file_put_contents($newpath, $logs, FILE_APPEND | LOCK_EX);
+
+            unlink($path);
+        }
+    }
+
+    private static function makeVersion()
+    {
+
+        $history = file(resource_path('views/bobo/md_history.txt'));
+
+        $version = preg_replace(["/.*Version/", "/\n/", "/\r/"], "", $history[0]);
+
+        file_put_contents(resource_path('views/bobo/version.txt'), trim($version));
     }
 
     private static function getCompare()
@@ -148,31 +152,56 @@ class Bobo
         return $compares;
     }
 
+    /**
+     * マークダウンのテキストを配列化.
+     * 「#### 2017/01/16 Version 1.1.2」から「2017/01/16」を抜き出して配列化する。
+     * 
+     * @param type $path
+     * @return type
+     */
     private static function getMdfile($path)
     {
         $texts = explode("\r\n", file_get_contents($path));
-        $data = [];
-        $key = '';
-        foreach ($texts as $text) {
-            if (substr($text, 0, 5) == '#### ') {
-                if ($key) {
-                    $data[] = [
-                        'key' => $key,
-                        'text' => implode("\n", $new_texts),
-                    ];
-                }
-                $new_texts = [];
 
-                $key = substr($text, 5, 10);
+        $data = [];
+
+        $lines = '';
+
+        $day_old = self::getDay($texts[0]);
+
+        foreach ($texts as $text) {
+            $day_new = self::getDay($text);
+
+            if ($day_new && $day_old && $day_new <> $day_old) {
+                $data[] = self::_setData($day_old, $lines);
+
+                $lines = [];
+
+                $day_old = $day_new;
             }
 
-            $new_texts[] = $text;
+            $lines[] = $text;
         }
-        $data[] = [
-            'key' => $key,
-            'text' => implode("\n", $new_texts),
-        ];
+        
+        $data[] = self::_setData($day_old, $lines);
 
         return $data;
+    }
+
+    private static function _setData($day_old, $lines)
+    {
+        return [
+            'key' => $day_old,
+            'text' => implode("\n", $lines),
+        ];
+    }
+
+    private static function getDay($text)
+    {
+        if (substr($text, 0, 5) == '#### ') {
+            return substr($text, 5, 10);
+        } else {
+            return '';
+        }
     }
 }

@@ -22,10 +22,10 @@ class BoboServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app['bobo'] = $this->app->share(function($app)
-        {
-            return new Bobo;
-        });
+	$this->app->singleton('bobo',function($app)
+	{
+		return new Bobo;
+	});
     }
 
     /**

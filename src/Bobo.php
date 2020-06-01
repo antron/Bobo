@@ -1,7 +1,9 @@
 <?php
+
 /**
  * Bobo.
  */
+
 namespace Antron\Bobo;
 
 /**
@@ -27,7 +29,7 @@ class Bobo
     /**
      * Flush Log.
      */
-    public static function flushLog()
+    public static function viewTempLog()
     {
         $filename = storage_path('logs/laravel.log');
 
@@ -39,6 +41,27 @@ class Bobo
             print "</pre>";
 
             self::accumeLog(storage_path('logs/laravel.log'));
+        }
+    }
+
+    /**
+     * history.
+     * 
+     * @return string html
+     */
+    public static function history()
+    {
+        $Parsedown = new \Parsedown();
+
+        return $Parsedown->text(file_get_contents(resource_path('views/bobo/md_history.txt.txt')));
+    }
+
+    public static function flushLog()
+    {
+        $finder = new \Symfony\Component\Finder\Finder();
+
+        foreach ($finder->in(storage_path('logs')) as $fileinfo) {
+            unlink($fileinfo->getPathname());
         }
     }
 
@@ -62,7 +85,7 @@ class Bobo
     public static function news()
     {
         $Parsedown = new \Parsedown();
-        
+
         return $Parsedown->text(file_get_contents(resource_path('views/bobo/news.txt')));
     }
 
@@ -165,7 +188,7 @@ class Bobo
 
         $data = [];
 
-        $lines = '';
+        $lines = [];
 
         $day_old = self::getDay($texts[0]);
 
@@ -182,7 +205,7 @@ class Bobo
 
             $lines[] = $text;
         }
-        
+
         $data[] = self::_setData($day_old, $lines);
 
         return $data;
@@ -204,4 +227,5 @@ class Bobo
             return '';
         }
     }
+
 }

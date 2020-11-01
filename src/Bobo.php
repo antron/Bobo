@@ -53,7 +53,7 @@ class Bobo
     {
         $Parsedown = new \Parsedown();
 
-        return $Parsedown->text(file_get_contents(resource_path('views/bobo/md_history.txt.txt')));
+        return $Parsedown->text(file_get_contents(resource_path('views/bobo/md_history.txt')));
     }
 
     public static function flushLog()
